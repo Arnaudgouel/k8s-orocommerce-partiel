@@ -1,0 +1,8 @@
+image:
+  repository: oroinc/orocommerce
+  tag: latest
+  pullPolicy: IfNotPresent
+
+env:
+  APP_ENV: prod
+  DATABASE_URL: "postgres://user:password@postgresql:5432/orocommerce"
