@@ -1,2 +1,0 @@
-1. OroCommerce has been deployed.
-2. Access via: http://orocommerce.example.com

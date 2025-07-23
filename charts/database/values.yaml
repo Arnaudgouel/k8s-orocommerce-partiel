@@ -1,0 +1,20 @@
+image:
+  repository: docker.io/oroinc/pgsql
+  tag: "17.2-alpine"
+  pullPolicy: IfNotPresent
+
+env:
+  POSTGRES_ROOT_PASSWORD: orodbpass
+  POSTGRES_DB: orodb
+  POSTGRES_USER: orodbuser
+  POSTGRES_PASSWORD: orodbpass
+
+service:
+  type: ClusterIP
+  port: 5432
+
+database:
+  replicas: 1
+  storage:
+    size: 8Gi
+    storageClass: ""

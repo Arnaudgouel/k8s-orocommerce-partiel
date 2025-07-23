@@ -1,8 +1,15 @@
 image:
-  repository: oroinc/orocommerce
-  tag: latest
+  repository: oroinc/runtime
+  tag: 6.1-latest
   pullPolicy: IfNotPresent
 
 env:
   APP_ENV: prod
   DATABASE_URL: "postgres://user:password@postgresql:5432/orocommerce"
+
+service:
+  type: ClusterIP
+  port: 80
+
+webserver:
+  replicas: 1

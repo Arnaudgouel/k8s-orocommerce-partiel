@@ -1,7 +1,15 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "orocommerce.fullname" . }}-ingress
+  name: {{ include "webserver.fullname" . }}-ingress
 spec:
   rules:
-    - host: orocommerce.example.com
+    - http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: {{ include "webserver.fullname" . }}
+              port:
+                number: {{ .Values.service.port }}

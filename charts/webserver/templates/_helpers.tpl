@@ -1,7 +1,7 @@
-{{- define "orocommerce.name" -}}
-orocommerce
+{{- define "webserver.name" -}}
+webserver
 {{- end -}}
 
-{{- define "orocommerce.fullname" -}}
-{{ include "orocommerce.name" . }}-{{ .Release.Name }}
+{{- define "webserver.fullname" -}}
+{{ include "webserver.name" . }}-{{ .Release.Name }}
 {{- end -}}

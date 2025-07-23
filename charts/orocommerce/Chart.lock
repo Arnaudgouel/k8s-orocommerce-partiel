@@ -1,0 +1,12 @@
+dependencies:
+- name: webserver
+  repository: file://../webserver
+  version: 0.1.0
+- name: database
+  repository: file://../database
+  version: 0.1.0
+- name: php-fpm
+  repository: file://../php-fpm
+  version: 0.1.0
+digest: sha256:26ae2acccf6826275d3e3631b3c4ef10af542de1dc24ca1a430182ac8f6b768a
+generated: "2025-07-22T22:13:34.829612249+02:00"

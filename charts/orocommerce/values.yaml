@@ -1,0 +1,8 @@
+webserver:
+  enabled: true
+
+database:
+  enabled: true
+
+php-fpm:
+  enabled: true

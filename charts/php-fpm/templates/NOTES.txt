@@ -1,0 +1,7 @@
+1. OroCommerce PHP-FPM application has been deployed.
+2. PHP-FPM service details:
+   - Service: {{ include "phpfpm.fullname" . }}
+   - Port: {{ .Values.service.port }}
+   - Protocol: FastCGI
+3. The PHP-FPM service is accessible within the cluster at: {{ include "phpfpm.fullname" . }}:{{ .Values.service.port }}
+4. This service should be used by the web server (nginx) to process PHP requests. 

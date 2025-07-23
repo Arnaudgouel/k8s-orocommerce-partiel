@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "phpfpm.fullname" . }}
+  labels:
+    app: {{ include "phpfpm.name" . }}
+spec:
+  replicas: {{ .Values.phpfpm.replicas }}
+  selector:
+    matchLabels:
+      app: {{ include "phpfpm.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "phpfpm.name" . }}
+    spec:
+      serviceAccountName: {{ include "phpfpm.fullname" . }}
+      containers:
+        - name: php-fpm
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["php-fpm"]
+          args: ["-F", "-c", "/usr/local/etc/php/php.ini", "-y", "/usr/local/etc/php-fpm.conf"]
+          ports:
+            - containerPort: 9000
+              protocol: TCP
+              name: php-fpm
+          env:
+            - name: ORO_ENV
+              value: {{ .Values.env.ORO_ENV }}
+            - name: ORO_LOG_PATH
+              value: {{ .Values.env.ORO_LOG_PATH }}
+          readinessProbe:
+            tcpSocket:
+              port: 9000
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            tcpSocket:
+              port: 9000
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            limits:
+              cpu: {{ .Values.phpfpm.resources.limits.cpu }}
+              memory: {{ .Values.phpfpm.resources.limits.memory }}
+            requests:
+              cpu: {{ .Values.phpfpm.resources.requests.cpu }}
+              memory: {{ .Values.phpfpm.resources.requests.memory }}
+          volumeMounts:
+            - name: tmp-volume
+              mountPath: /tmp
+            - name: php-fpm-config
+              mountPath: /usr/local/etc/php-fpm.conf
+              subPath: php-fpm.conf
+      volumes:
+        - name: tmp-volume
+          emptyDir: {}
+        - name: php-fpm-config
+          configMap:
+            name: {{ include "phpfpm.fullname" . }}-config 
