@@ -6,3 +6,6 @@ database:
 
 php-fpm:
   enabled: true
+
+websocket:
+  enabled: true

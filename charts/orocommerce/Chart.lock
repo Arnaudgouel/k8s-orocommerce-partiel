@@ -8,5 +8,8 @@ dependencies:
 - name: php-fpm
   repository: file://../php-fpm
   version: 0.1.0
-digest: sha256:26ae2acccf6826275d3e3631b3c4ef10af542de1dc24ca1a430182ac8f6b768a
-generated: "2025-07-22T22:13:34.829612249+02:00"
+- name: websocket
+  repository: file://../websocket
+  version: 0.1.0
+digest: sha256:20a6571b9d6cad71140b18e967f7bb428c2ec4774d38a3047c6c414443bd1f8b
+generated: "2025-07-24T00:12:13.110886513+02:00"

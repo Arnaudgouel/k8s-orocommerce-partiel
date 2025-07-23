@@ -1,7 +1,1 @@
-1. OroCommerce PostgreSQL database has been deployed.
-2. Database connection details:
-   - Host: {{ include "database.fullname" . }}
-   - Port: {{ .Values.service.port }}
-   - Database: {{ .Values.env.POSTGRES_DB }}
-   - User: {{ .Values.env.POSTGRES_USER }}
-3. The database is accessible within the cluster at: {{ include "database.fullname" . }}:{{ .Values.service.port }} 
+ 

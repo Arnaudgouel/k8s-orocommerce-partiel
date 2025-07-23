@@ -1,12 +1,7 @@
 image:
   repository: oroinc/runtime
-  tag: 6.1-latest
+  tag: "6.1-latest"
   pullPolicy: IfNotPresent
-
-initContainer:
-  image:
-    repository: oroinc/orocommerce-application
-    tag: 6.1.0
 
 env:
   # Variables utilisées en externe des instances
@@ -18,7 +13,7 @@ env:
   
   # Variables utilisées en interne dans les instances
   ORO_USER_RUNTIME: "www-data"
-  ORO_ENV: "prod"
+  ORO_ENV:
   
   # Données pour l'installation
   ORO_USER_NAME: "admin"
@@ -96,7 +91,14 @@ env:
 
 service:
   type: ClusterIP
-  port: 80
+  port: 8080
 
-webserver:
+websocket:
   replicas: 1
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+    requests:
+      cpu: "250m"
+      memory: "256Mi" 

@@ -1,0 +1,15 @@
+apiVersion: v2
+name: websocket
+description: A Helm chart for deploying OroCommerce WebSocket service
+type: application
+version: 0.1.0
+appVersion: "6.1.0"
+keywords:
+  - orocommerce
+  - websocket
+home: https://oroinc.com/
+sources:
+  - https://github.com/oroinc/orocommerce
+maintainers:
+  - name: OroCommerce Team
+    email: support@oroinc.com 

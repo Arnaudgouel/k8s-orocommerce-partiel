@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "websocket.fullname" . }}
+  labels:
+    app: {{ include "websocket.name" . }}
+spec:
+  replicas: {{ .Values.websocket.replicas }}
+  selector:
+    matchLabels:
+      app: {{ include "websocket.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "websocket.name" . }}
+    spec:
+      containers:
+        - name: ws
+          command: ["/usr/local/bin/docker-entrypoint.sh"]
+          args: ["websocket"]
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+              name: ws
+          env:
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          resources:
+            limits:
+              cpu: {{ .Values.websocket.resources.limits.cpu }}
+              memory: {{ .Values.websocket.resources.limits.memory }}
+            requests:
+              cpu: {{ .Values.websocket.resources.requests.cpu }}
+              memory: {{ .Values.websocket.resources.requests.memory }}
+          volumeMounts:
+            - name: tmp-volume
+              mountPath: /tmp
+            - name: oro-app
+              mountPath: /var/www/oro
+      volumes:
+        - name: tmp-volume
+          emptyDir: {}
+        - name: oro-app
+          emptyDir: {} 

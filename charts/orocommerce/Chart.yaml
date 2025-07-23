@@ -16,3 +16,7 @@ dependencies:
     version: 0.1.0
     repository: file://../php-fpm
     condition: php-fpm.enabled
+  - name: websocket
+    version: 0.1.0
+    repository: file://../websocket
+    condition: websocket.enabled

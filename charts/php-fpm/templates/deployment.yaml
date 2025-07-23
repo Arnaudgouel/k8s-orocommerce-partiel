@@ -16,7 +16,7 @@ spec:
     spec:
       serviceAccountName: {{ include "phpfpm.fullname" . }}
       containers:
-        - name: php-fpm
+        - name: php-fpm-app
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["php-fpm"]
@@ -24,12 +24,12 @@ spec:
           ports:
             - containerPort: 9000
               protocol: TCP
-              name: php-fpm
+              name: php-fpm-app
           env:
-            - name: ORO_ENV
-              value: {{ .Values.env.ORO_ENV }}
-            - name: ORO_LOG_PATH
-              value: {{ .Values.env.ORO_LOG_PATH }}
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
           readinessProbe:
             tcpSocket:
               port: 9000
