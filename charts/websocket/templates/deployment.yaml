@@ -41,8 +41,29 @@ spec:
               mountPath: /tmp
             - name: oro-app
               mountPath: /var/www/oro
+            - name: cache
+              mountPath: /var/www/oro/var/cache
+            - name: maintenance
+              mountPath: /var/www/oro/var/maintenance
+            - name: public-storage
+              mountPath: /var/www/oro/public/media
+            - name: private-storage
+              mountPath: /var/www/oro/var/data
       volumes:
         - name: tmp-volume
           emptyDir: {}
         - name: oro-app
-          emptyDir: {} 
+          persistentVolumeClaim:
+            claimName: {{ .Values.websocket.volumes.oroApp.claimName }}
+        - name: cache
+          persistentVolumeClaim:
+            claimName: {{ .Values.websocket.volumes.cache.claimName }}
+        - name: maintenance
+          persistentVolumeClaim:
+            claimName: {{ .Values.websocket.volumes.maintenance.claimName }}
+        - name: public-storage
+          persistentVolumeClaim:
+            claimName: {{ .Values.websocket.volumes.publicStorage.claimName }}
+        - name: private-storage
+          persistentVolumeClaim:
+            claimName: {{ .Values.websocket.volumes.privateStorage.claimName }} 

@@ -1,14 +1,66 @@
+# Configuration des volumes persistants
+storage:
+  oroApp:
+    size: "10Gi"
+    storageClass: ""
+  cache:
+    size: "5Gi"
+    storageClass: ""
+  maintenance:
+    size: "1Gi"
+    storageClass: ""
+  publicStorage:
+    size: "20Gi"
+    storageClass: ""
+  privateStorage:
+    size: "10Gi"
+    storageClass: ""
+
+# Configuration des sous-charts
 webserver:
   enabled: true
+  volumes:
+    oroApp:
+      claimName: "oro-app-orocommerce"
+    cache:
+      claimName: "cache-orocommerce"
+    maintenance:
+      claimName: "maintenance-orocommerce"
+    publicStorage:
+      claimName: "public-storage-orocommerce"
+    privateStorage:
+      claimName: "private-storage-orocommerce"
 
 database:
   enabled: true
 
 php-fpm:
   enabled: true
+  volumes:
+    oroApp:
+      claimName: "oro-app-orocommerce"
+    cache:
+      claimName: "cache-orocommerce"
+    maintenance:
+      claimName: "maintenance-orocommerce"
+    publicStorage:
+      claimName: "public-storage-orocommerce"
+    privateStorage:
+      claimName: "private-storage-orocommerce"
 
 websocket:
   enabled: true
+  volumes:
+    oroApp:
+      claimName: "oro-app-orocommerce"
+    cache:
+      claimName: "cache-orocommerce"
+    maintenance:
+      claimName: "maintenance-orocommerce"
+    publicStorage:
+      claimName: "public-storage-orocommerce"
+    privateStorage:
+      claimName: "private-storage-orocommerce"
 
 mail:
   enabled: true

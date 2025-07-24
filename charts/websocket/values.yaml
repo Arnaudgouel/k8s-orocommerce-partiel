@@ -101,4 +101,15 @@ websocket:
       memory: "512Mi"
     requests:
       cpu: "250m"
-      memory: "256Mi" 
+      memory: "256Mi"
+  volumes:
+    oroApp:
+      claimName: "oro-app-orocommerce"
+    cache:
+      claimName: "cache-orocommerce"
+    maintenance:
+      claimName: "maintenance-orocommerce"
+    publicStorage:
+      claimName: "public-storage-orocommerce"
+    privateStorage:
+      claimName: "private-storage-orocommerce" 

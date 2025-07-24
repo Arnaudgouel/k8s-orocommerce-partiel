@@ -57,9 +57,34 @@ spec:
             - name: php-fpm-config
               mountPath: /usr/local/etc/php-fpm.conf
               subPath: php-fpm.conf
+            - name: oro-app
+              mountPath: /var/www/oro
+            - name: cache
+              mountPath: /var/www/oro/var/cache
+            - name: maintenance
+              mountPath: /var/www/oro/var/maintenance
+            - name: public-storage
+              mountPath: /var/www/oro/public/media
+            - name: private-storage
+              mountPath: /var/www/oro/var/data
       volumes:
         - name: tmp-volume
           emptyDir: {}
         - name: php-fpm-config
           configMap:
-            name: {{ include "phpfpm.fullname" . }}-config 
+            name: {{ include "phpfpm.fullname" . }}-config
+        - name: oro-app
+          persistentVolumeClaim:
+            claimName: {{ .Values.phpfpm.volumes.oroApp.claimName }}
+        - name: cache
+          persistentVolumeClaim:
+            claimName: {{ .Values.phpfpm.volumes.cache.claimName }}
+        - name: maintenance
+          persistentVolumeClaim:
+            claimName: {{ .Values.phpfpm.volumes.maintenance.claimName }}
+        - name: public-storage
+          persistentVolumeClaim:
+            claimName: {{ .Values.phpfpm.volumes.publicStorage.claimName }}
+        - name: private-storage
+          persistentVolumeClaim:
+            claimName: {{ .Values.phpfpm.volumes.privateStorage.claimName }} 

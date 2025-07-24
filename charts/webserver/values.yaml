@@ -100,3 +100,14 @@ service:
 
 webserver:
   replicas: 1
+  volumes:
+    oroApp:
+      claimName: "oro-app-orocommerce"
+    cache:
+      claimName: "cache-orocommerce"
+    maintenance:
+      claimName: "maintenance-orocommerce"
+    publicStorage:
+      claimName: "public-storage-orocommerce"
+    privateStorage:
+      claimName: "private-storage-orocommerce"
