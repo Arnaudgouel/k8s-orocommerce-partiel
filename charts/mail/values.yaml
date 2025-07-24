@@ -1,0 +1,91 @@
+image:
+  repository: mailhog/mailhog
+  tag: latest
+  pullPolicy: IfNotPresent
+
+env:
+  # Configuration MailHog
+  MH_UI_WEB_PATH: mailcatcher
+  MH_STORAGE: maildir
+  MH_MAILDIR_PATH: /home/mailhog/maildir
+
+service:
+  type: ClusterIP
+  port: 1025  # Port SMTP
+  uiPort: 8025  # Port interface web
+
+deployment:
+  replicas: 1
+  hostname: mail
+
+# Configuration pour l'interface web MailHog
+ui:
+  enabled: true
+  service:
+    type: ClusterIP
+    port: 8025
+
+# Configuration des volumes persistants
+persistence:
+  enabled: false  # MailHog n'a généralement pas besoin de persistance
+  storageClass: ""
+  size: 1Gi
+
+# Configuration des ressources
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# Configuration des probes de santé
+healthcheck:
+  enabled: true
+  # Probe de liveness - vérifie que le service est vivant
+  liveness:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 3
+    successThreshold: 1
+    # Utilise l'interface web pour vérifier que MailHog répond
+    httpGet:
+      path: /
+      port: ui
+  # Probe de readiness - vérifie que le service est prêt à recevoir du trafic
+  readiness:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+    # Teste la connectivité SMTP
+    tcpSocket:
+      port: smtp
+  # Probe de startup - pour les services qui peuvent prendre du temps à démarrer
+  startup:
+    enabled: false
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 30
+    successThreshold: 1
+    httpGet:
+      path: /
+      port: ui
+
+# Configuration Ingress pour l'interface web
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: mail.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: [] 

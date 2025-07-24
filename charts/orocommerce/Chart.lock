@@ -11,5 +11,8 @@ dependencies:
 - name: websocket
   repository: file://../websocket
   version: 0.1.0
-digest: sha256:20a6571b9d6cad71140b18e967f7bb428c2ec4774d38a3047c6c414443bd1f8b
-generated: "2025-07-24T00:12:13.110886513+02:00"
+- name: mail
+  repository: file://../mail
+  version: 0.1.0
+digest: sha256:722e2b02f7ad0bf65f2796b912fba669ffdb7bb80cca6aa24e32212ef20a5c00
+generated: "2025-07-24T12:01:55.961494366+02:00"

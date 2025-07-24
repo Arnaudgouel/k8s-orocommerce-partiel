@@ -20,3 +20,7 @@ dependencies:
     version: 0.1.0
     repository: file://../websocket
     condition: websocket.enabled
+  - name: mail
+    version: 0.1.0
+    repository: file://../mail
+    condition: mail.enabled

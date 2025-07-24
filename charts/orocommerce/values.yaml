@@ -9,3 +9,6 @@ php-fpm:
 
 websocket:
   enabled: true
+
+mail:
+  enabled: true

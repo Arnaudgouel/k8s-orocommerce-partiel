@@ -1,0 +1,4 @@
+apiVersion: v2
+name: mail
+version: 0.1.0
+description: A Helm chart for deploying OroCommerce mail service (MailHog) 

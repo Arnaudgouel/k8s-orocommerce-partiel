@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mail.fullname" . }}
+  labels:
+    {{- include "mail.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.deployment.replicas }}
+  selector:
+    matchLabels:
+      {{- include "mail.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "mail.selectorLabels" . | nindent 8 }}
+    spec:
+      hostname: {{ .Values.deployment.hostname }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: MH_UI_WEB_PATH
+              value: {{ .Values.env.MH_UI_WEB_PATH | quote }}
+            - name: MH_STORAGE
+              value: {{ .Values.env.MH_STORAGE | quote }}
+            - name: MH_MAILDIR_PATH
+              value: {{ .Values.env.MH_MAILDIR_PATH | quote }}
+          ports:
+            - name: smtp
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+            - name: ui
+              containerPort: {{ .Values.service.uiPort }}
+              protocol: TCP
+          {{- if and .Values.healthcheck.enabled .Values.healthcheck.liveness.enabled }}
+          livenessProbe:
+            {{- if .Values.healthcheck.liveness.httpGet }}
+            httpGet:
+              path: {{ .Values.healthcheck.liveness.httpGet.path }}
+              port: {{ .Values.healthcheck.liveness.httpGet.port }}
+            {{- end }}
+            {{- if .Values.healthcheck.liveness.tcpSocket }}
+            tcpSocket:
+              port: {{ .Values.healthcheck.liveness.tcpSocket.port }}
+            {{- end }}
+            initialDelaySeconds: {{ .Values.healthcheck.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.healthcheck.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.healthcheck.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.healthcheck.liveness.failureThreshold }}
+            successThreshold: {{ .Values.healthcheck.liveness.successThreshold }}
+          {{- end }}
+          {{- if and .Values.healthcheck.enabled .Values.healthcheck.readiness.enabled }}
+          readinessProbe:
+            {{- if .Values.healthcheck.readiness.httpGet }}
+            httpGet:
+              path: {{ .Values.healthcheck.readiness.httpGet.path }}
+              port: {{ .Values.healthcheck.readiness.httpGet.port }}
+            {{- end }}
+            {{- if .Values.healthcheck.readiness.tcpSocket }}
+            tcpSocket:
+              port: {{ .Values.healthcheck.readiness.tcpSocket.port }}
+            {{- end }}
+            initialDelaySeconds: {{ .Values.healthcheck.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.healthcheck.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.healthcheck.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.healthcheck.readiness.failureThreshold }}
+            successThreshold: {{ .Values.healthcheck.readiness.successThreshold }}
+          {{- end }}
+          {{- if and .Values.healthcheck.enabled .Values.healthcheck.startup.enabled }}
+          startupProbe:
+            {{- if .Values.healthcheck.startup.httpGet }}
+            httpGet:
+              path: {{ .Values.healthcheck.startup.httpGet.path }}
+              port: {{ .Values.healthcheck.startup.httpGet.port }}
+            {{- end }}
+            {{- if .Values.healthcheck.startup.tcpSocket }}
+            tcpSocket:
+              port: {{ .Values.healthcheck.startup.tcpSocket.port }}
+            {{- end }}
+            initialDelaySeconds: {{ .Values.healthcheck.startup.initialDelaySeconds }}
+            periodSeconds: {{ .Values.healthcheck.startup.periodSeconds }}
+            timeoutSeconds: {{ .Values.healthcheck.startup.timeoutSeconds }}
+            failureThreshold: {{ .Values.healthcheck.startup.failureThreshold }}
+            successThreshold: {{ .Values.healthcheck.startup.successThreshold }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }} 
