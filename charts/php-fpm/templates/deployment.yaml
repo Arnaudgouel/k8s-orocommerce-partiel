@@ -15,6 +15,14 @@ spec:
         app: {{ include "phpfpm.name" . }}
     spec:
       serviceAccountName: {{ include "phpfpm.fullname" . }}
+      initContainers:
+      # This is a workaround to wait for the volume initialization to complete. Less visible than a kubectl job. But improves the performance of the deployment.
+        - name: wait-for-volume-init
+          image: busybox:1.35
+          command: ['sh', '-c', 'until test -f /var/www/oro/.volume-initialized; do echo "Waiting for volume initialization..."; sleep 10; done']
+          volumeMounts:
+            - name: oro-app
+              mountPath: /var/www/oro
       containers:
         - name: php-fpm-app
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

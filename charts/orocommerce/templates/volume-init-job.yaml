@@ -1,0 +1,57 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "orocommerce.fullname" . }}-volume-init-job
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "orocommerce.name" . }}
+    {{- include "orocommerce.labels" . | nindent 4 }}
+spec:
+  backoffLimit: 3
+  activeDeadlineSeconds: 300
+  ttlSecondsAfterFinished: 100
+  template:
+    metadata:
+      labels:
+        app: {{ include "orocommerce.name" . }}-volume-init
+        {{- include "orocommerce.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: volume-init
+        image: "oroinc/orocommerce-application:6.1.0"
+        imagePullPolicy: IfNotPresent
+        command: 
+        - sh
+        - -c
+        - |
+          # Exécuter l'initialisation standard avec -- true (comme dans Docker Compose)
+          /usr/local/bin/docker-entrypoint.sh -- true
+          
+          # Créer un fichier de marqueur pour indiquer que l'initialisation est terminée
+          echo "Volume initialized at $(date)" > /var/www/oro/.volume-initialized
+          echo "Initialization completed successfully" >> /var/www/oro/.volume-initialized
+          
+          # Afficher le contenu pour debug
+          cat /var/www/oro/.volume-initialized
+        env:
+        - name: ORO_ENV
+          value: "prod"
+        - name: ORO_USER_RUNTIME
+          value: "www-data"
+        - name: ORO_APP_FOLDER
+          value: "/var/www/oro"
+        volumeMounts:
+        - name: oro-app-storage
+          mountPath: /var/www/oro
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "200m"
+      volumes:
+      - name: oro-app-storage
+        persistentVolumeClaim:
+          claimName: oro-app-{{ .Release.Name }} 
