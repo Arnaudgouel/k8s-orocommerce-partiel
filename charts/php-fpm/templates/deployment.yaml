@@ -72,7 +72,7 @@ spec:
           emptyDir: {}
         - name: php-fpm-config
           configMap:
-            name: {{ include "phpfpm.fullname" . }}-config
+            name: {{ include "phpfpm.fullname" . }}-config 
         - name: oro-app
           persistentVolumeClaim:
             claimName: {{ .Values.phpfpm.volumes.oroApp.claimName }}

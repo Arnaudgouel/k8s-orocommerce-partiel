@@ -14,5 +14,8 @@ dependencies:
 - name: mail
   repository: file://../mail
   version: 0.1.0
-digest: sha256:722e2b02f7ad0bf65f2796b912fba669ffdb7bb80cca6aa24e32212ef20a5c00
-generated: "2025-07-24T12:01:55.961494366+02:00"
+- name: cron
+  repository: file://../cron
+  version: 0.1.0
+digest: sha256:82232417b58b915d930c0c9fccf31e3440905b389c65b2f33cc1509adc523c59
+generated: "2025-07-28T11:42:10.202514851+02:00"

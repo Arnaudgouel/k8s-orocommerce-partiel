@@ -3,9 +3,9 @@ kind: Service
 metadata:
   name: {{ include "webserver.fullname" . }}
 spec:
-  type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
+    - protocol: TCP
+      port: {{ .Values.service.port }}
       targetPort: 80
   selector:
     app: {{ include "webserver.name" . }}

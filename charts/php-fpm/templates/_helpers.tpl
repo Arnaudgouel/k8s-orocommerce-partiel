@@ -4,7 +4,7 @@ php-fpm
 
 {{- define "phpfpm.fullname" -}}
 {{ include "phpfpm.name" . }}-{{ .Release.Name }}
-{{- end -}}
+{{- end -}} 
 
 {{- define "phpfpm.labels" -}}
 helm.sh/chart: {{ include "phpfpm.chart" . }}

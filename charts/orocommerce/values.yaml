@@ -64,3 +64,17 @@ websocket:
 
 mail:
   enabled: true
+
+cron:
+  enabled: true
+  volumes:
+    oroApp:
+      claimName: "oro-app-orocommerce"
+    cache:
+      claimName: "cache-orocommerce"
+    maintenance:
+      claimName: "maintenance-orocommerce"
+    publicStorage:
+      claimName: "public-storage-orocommerce"
+    privateStorage:
+      claimName: "private-storage-orocommerce"
