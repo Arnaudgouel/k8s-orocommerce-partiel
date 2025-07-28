@@ -13,9 +13,18 @@ spec:
         app: {{ include "webserver.name" . }}
     spec:
       initContainers:
-        - name: init-container
+        - name: wait-for-volume-init
+          image: busybox:1.35
+          command: ['sh', '-c', 'until test -f /var/www/oro/.volume-initialized; do echo "Waiting for volume initialization..."; sleep 10; done']
+          volumeMounts:
+            - name: oro-app
+              mountPath: /var/www/oro
+        - name: wait-for-php-fpm
+          image: busybox:1.35
+          command: ["sh", "-c", "until nc -z php-fpm-app 9000; do echo \"Waiting for php-fpm connection...\"; sleep 1; done"]
+        - name: nginx-init
           image: "{{ .Values.initContainer.image.repository }}:{{ .Values.initContainer.image.tag }}"
-          command: ["sh", "-c", "until nc -z php-fpm-app 9000; do echo \"Waiting for php-fpm connection...\"; sleep 1; done && /usr/local/bin/docker-entrypoint.sh nginx-init && sed -i '/gridfs/d; /mongo/d' /opt/oro-nginx/etc/sites-available/*.conf"]
+          command: ["/usr/local/bin/docker-entrypoint.sh", "nginx-init"]
           env:
             {{- range $key, $value := .Values.env }}
             - name: {{ $key }}

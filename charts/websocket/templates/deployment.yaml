@@ -14,6 +14,13 @@ spec:
       labels:
         app: {{ include "websocket.name" . }}
     spec:
+      initContainers:
+        - name: wait-for-volume-init
+          image: busybox:1.35
+          command: ['sh', '-c', 'until test -f /var/www/oro/.volume-initialized; do echo "Waiting for volume initialization..."; sleep 10; done']
+          volumeMounts:
+            - name: oro-app
+              mountPath: /var/www/oro
       containers:
         - name: ws
           command: ["/usr/local/bin/docker-entrypoint.sh"]
