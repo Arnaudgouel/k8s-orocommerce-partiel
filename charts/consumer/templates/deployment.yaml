@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "consumer.fullname" . }}
+  labels:
+    {{- include "consumer.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.consumer.replicas }}
+  selector:
+    matchLabels:
+      {{- include "consumer.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "consumer.selectorLabels" . | nindent 8 }}
+    spec:
+      initContainers:
+        - name: init-container
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          command: ["sh", "-c", "timeout 1 bash -c '</dev/tcp/php-fpm-app/9000'"]
+      containers:
+        - name: consumer
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["/usr/local/bin/docker-entrypoint.sh"]
+          args: ["consumer"]
+          env:
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.consumer.resources | nindent 12 }}
+          volumeMounts:
+            - name: tmp-volume
+              mountPath: /tmp
+            - name: oro-app
+              mountPath: /var/www/oro
+            - name: cache
+              mountPath: /var/www/oro/var/cache
+            - name: maintenance
+              mountPath: /var/www/oro/var/maintenance
+            - name: public-storage
+              mountPath: /var/www/oro/public/media
+            - name: private-storage
+              mountPath: /var/www/oro/var/data
+      volumes:
+        - name: tmp-volume
+          emptyDir: {}
+        - name: oro-app
+          persistentVolumeClaim:
+            claimName: {{ .Values.volumes.oroApp.claimName }}
+        - name: cache
+          persistentVolumeClaim:
+            claimName: {{ .Values.volumes.cache.claimName }}
+        - name: maintenance
+          persistentVolumeClaim:
+            claimName: {{ .Values.volumes.maintenance.claimName }}
+        - name: public-storage
+          persistentVolumeClaim:
+            claimName: {{ .Values.volumes.publicStorage.claimName }}
+        - name: private-storage
+          persistentVolumeClaim:
+            claimName: {{ .Values.volumes.privateStorage.claimName }} 

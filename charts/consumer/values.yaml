@@ -1,0 +1,34 @@
+image:
+  repository: oroinc/runtime
+  tag: "6.1-latest"
+  pullPolicy: IfNotPresent
+
+consumer:
+  replicas: 1
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+    requests:
+      cpu: "250m"
+      memory: "256Mi"
+
+service:
+  type: ClusterIP
+  port: 80
+
+env:
+  ORO_ENV: ""
+  ORO_LOG_PATH: "php://stderr"
+
+volumes:
+  oroApp:
+    claimName: "oro-app-orocommerce"
+  cache:
+    claimName: "cache-orocommerce"
+  maintenance:
+    claimName: "maintenance-orocommerce"
+  publicStorage:
+    claimName: "public-storage-orocommerce"
+  privateStorage:
+    claimName: "private-storage-orocommerce" 

@@ -17,5 +17,8 @@ dependencies:
 - name: cron
   repository: file://../cron
   version: 0.1.0
-digest: sha256:82232417b58b915d930c0c9fccf31e3440905b389c65b2f33cc1509adc523c59
-generated: "2025-07-28T11:42:10.202514851+02:00"
+- name: consumer
+  repository: file://../consumer
+  version: 0.1.0
+digest: sha256:da62ad66471a3ddb06b39dec50e91ae8549298a5bde7747ae986b7a70adedf95
+generated: "2025-07-28T23:06:42.784579601+02:00"

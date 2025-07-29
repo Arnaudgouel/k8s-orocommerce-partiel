@@ -28,3 +28,7 @@ dependencies:
     version: 0.1.0
     repository: file://../cron
     condition: cron.enabled
+  - name: consumer
+    version: 0.1.0
+    repository: file://../consumer
+    condition: consumer.enabled
