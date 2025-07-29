@@ -16,6 +16,20 @@ storage:
     size: "10Gi"
     storageClass: ""
 
+# Configuration des Jobs d'initialisation
+jobs:
+  volumeInit:
+    enabled: true
+    # Le Job d'initialisation des volumes s'exécute toujours au premier install
+  restoreInit:
+    enabled: true
+    # Le Job de restauration s'exécute seulement au premier install
+    # Pour forcer une restauration lors d'un upgrade, mettre à false puis true
+  cleanupVolumes:
+    enabled: false
+    # Le Job de nettoyage s'exécute avant helm uninstall
+    # Pour supprimer automatiquement les volumes, mettre à true
+
 # Configuration des sous-charts
 webserver:
   enabled: true

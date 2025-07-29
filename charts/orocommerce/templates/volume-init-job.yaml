@@ -1,3 +1,4 @@
+{{- if .Values.jobs.volumeInit.enabled }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -6,6 +7,10 @@ metadata:
   labels:
     app: {{ include "orocommerce.name" . }}
     {{- include "orocommerce.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": before-hook-creation
 spec:
   backoffLimit: 3
   activeDeadlineSeconds: 300
@@ -35,12 +40,39 @@ spec:
           # Afficher le contenu pour debug
           cat /var/www/oro/.volume-initialized
         env:
-        - name: ORO_ENV
-          value: "prod"
+        # Variables utilisées en externe des instances
+        - name: ORO_IMAGE_TAG
+          value: "6.1.0"
+        - name: ORO_IMAGE
+          value: "oroinc/orocommerce-application"
+        - name: ORO_IMAGE_INIT
+          value: "oroinc/orocommerce-application-init"
+        - name: ORO_IMAGE_BASE_RUNTIME
+          value: "oroinc/runtime"
+        - name: ORO_BASELINE_VERSION
+          value: "6.1-latest"
+        
+        # Variables utilisées en interne dans les instances
         - name: ORO_USER_RUNTIME
           value: "www-data"
+        - name: ORO_ENV
+          value: "prod"
         - name: ORO_APP_FOLDER
           value: "/var/www/oro"
+        
+        # Configuration de la base de données
+        - name: ORO_DB_HOST
+          value: "database-orocommerce"
+        - name: ORO_DB_PORT
+          value: "5432"
+        - name: ORO_DB_NAME
+          value: "orodb"
+        - name: ORO_DB_USER
+          value: "orodbuser"
+        - name: ORO_DB_PASSWORD
+          value: "orodbpass"
+        - name: PGPASSWORD
+          value: "orodbpass"
         volumeMounts:
         - name: oro-app-storage
           mountPath: /var/www/oro
@@ -54,4 +86,5 @@ spec:
       volumes:
       - name: oro-app-storage
         persistentVolumeClaim:
-          claimName: oro-app-{{ .Release.Name }} 
+          claimName: oro-app-{{ .Release.Name }}
+{{- end }} 
