@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "orocommerce.fullname" . }}-restore-init
+  name: {{ include "orocommerce.fullname" . }}-install-init
   namespace: {{ .Release.Namespace }}
   labels:
     app: {{ include "orocommerce.name" . }}
@@ -18,7 +18,7 @@ spec:
   template:
     metadata:
       labels:
-        app: {{ include "orocommerce.name" . }}-restore-init
+        app: {{ include "orocommerce.name" . }}-install-init
         {{- include "orocommerce.labels" . | nindent 8 }}
     spec:
       restartPolicy: Never
@@ -31,7 +31,7 @@ spec:
       #   image: busybox:1.35
       #   command: ["sh", "-c", "until nc -z orocommerce-mail 1025; do echo 'Waiting for mail service...'; sleep 5; done"]
       containers:
-      - name: restore-init
+      - name: install-init
         image: "oroinc/orocommerce-application:6.1.0"
         imagePullPolicy: IfNotPresent
         command: 

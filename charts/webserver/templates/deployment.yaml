@@ -24,7 +24,12 @@ spec:
           command: ["sh", "-c", "until nc -z php-fpm-app 9000; do echo \"Waiting for php-fpm connection...\"; sleep 1; done"]
         - name: nginx-init
           image: "{{ .Values.initContainer.image.repository }}:{{ .Values.initContainer.image.tag }}"
-          command: ["/usr/local/bin/docker-entrypoint.sh", "nginx-init"]
+          command: 
+          - sh
+          - -c
+          - |
+            /usr/local/bin/docker-entrypoint.sh nginx-init
+            sed -i '/gridfs/d; /mongo/d' /opt/oro-nginx/etc/sites-available/*.conf
           env:
             {{- range $key, $value := .Values.env }}
             - name: {{ $key }}
