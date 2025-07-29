@@ -24,6 +24,9 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["/usr/local/bin/docker-entrypoint.sh"]
           args: ["consumer"]
+          envFrom:
+            - configMapRef:
+                name: orocommerce-global-config
           env:
             {{- range $key, $value := .Values.env }}
             - name: {{ $key }}

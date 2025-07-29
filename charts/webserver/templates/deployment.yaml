@@ -29,13 +29,17 @@ spec:
           - -c
           - |
             /usr/local/bin/docker-entrypoint.sh nginx-init
-            sed -i '/gridfs/d; /mongo/d' /opt/oro-nginx/etc/sites-available/*.conf
+          envFrom:
+            - configMapRef:
+                name: orocommerce-global-config
           env:
             {{- range $key, $value := .Values.env }}
             - name: {{ $key }}
               value: {{ $value | quote }}
             {{- end }}
           volumeMounts:
+            - name: nginx-config
+              mountPath: /opt/oro-nginx
             - name: oro-app
               mountPath: /var/www/oro
             - name: cache
@@ -50,11 +54,24 @@ spec:
         - name: webserver
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          command: ["nginx"]
-          args: ["-g", "daemon off;"]
+          command: ["sh"]
+          args: 
+          - -c
+          - |
+            # Corriger les noms de services dans la configuration nginx
+            sed -i 's/orocommerce-app-php-fpm/php-fpm-app/g' /opt/oro-nginx/etc/sites-available/*.conf
+            sed -i 's/orocommerce-websocket/ws/g' /opt/oro-nginx/etc/sites-available/*.conf
+            sed -i '/gridfs/d; /mongo/d' /opt/oro-nginx/etc/sites-available/*.conf
+            # Copier la configuration générée vers /etc/nginx
+            # cp -r /opt/oro-nginx/etc/* /etc/nginx/
+            # Démarrer nginx
+            nginx"
           ports:
             - containerPort: 80
               protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: orocommerce-global-config
           env:
             {{- range $key, $value := .Values.env }}
             - name: {{ $key }}
@@ -68,6 +85,8 @@ spec:
               cpu: "250m"
               memory: "256Mi"
           volumeMounts:
+            - name: nginx-config
+              mountPath: /opt/oro-nginx
             - name: oro-app
               mountPath: /var/www/oro
             - name: cache
@@ -79,6 +98,8 @@ spec:
             - name: private-storage
               mountPath: /var/www/oro/var/data
       volumes:
+        - name: nginx-config
+          emptyDir: {}
         - name: oro-app
           persistentVolumeClaim:
             claimName: {{ .Values.webserver.volumes.oroApp.claimName }}

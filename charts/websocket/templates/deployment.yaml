@@ -31,6 +31,9 @@ spec:
             - containerPort: 8080
               protocol: TCP
               name: ws
+          envFrom:
+            - configMapRef:
+                name: orocommerce-global-config
           env:
             {{- range $key, $value := .Values.env }}
             - name: {{ $key }}

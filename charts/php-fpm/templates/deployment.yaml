@@ -33,6 +33,9 @@ spec:
             - containerPort: 9000
               protocol: TCP
               name: php-fpm-app
+          envFrom:
+            - configMapRef:
+                name: orocommerce-global-config
           env:
             {{- range $key, $value := .Values.env }}
             - name: {{ $key }}

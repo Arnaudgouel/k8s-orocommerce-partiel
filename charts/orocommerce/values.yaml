@@ -21,6 +21,10 @@ jobs:
   volumeInit:
     enabled: true
     # Le Job d'initialisation des volumes s'exécute toujours au premier install
+  install:
+    enabled: true
+    # Le Job d'installation s'exécute seulement au premier install
+    # Pour forcer une installation lors d'un upgrade, mettre à false puis true
   restoreInit:
     enabled: true
     # Le Job de restauration s'exécute seulement au premier install
