@@ -14,7 +14,7 @@ data:
   
   # Variables utilisées en interne dans les instances
   ORO_USER_RUNTIME: "www-data"
-  ORO_ENV: "prod"
+  ORO_ENV: "dev"
   
   # Données pour l'installation
   ORO_USER_NAME: "admin"
@@ -51,12 +51,12 @@ data:
   ORO_PG_VER: "17.2-alpine"
   
   # Configuration de la base de données
-  ORO_DB_HOST: "db"
+  ORO_DB_HOST: "database-orocommerce"
   ORO_DB_PORT: "5432"
   ORO_DB_NAME: "orodb"
   ORO_DB_USER: "orodbuser"
   ORO_DB_PASSWORD: "orodbpass"
-  ORO_DB_DSN: "postgres://orodbuser:orodbpass@db:5432/orodb?sslmode=disable&charset=utf8&serverVersion=17.2"
+  ORO_DB_DSN: "postgres://orodbuser:orodbpass@database-orocommerce:5432/orodb?sslmode=disable&charset=utf8&serverVersion=17.2"
   ORO_DB_ROOT_USER: "orodbuser"
   ORO_DB_ROOT_PASSWORD: "orodbpass"
   

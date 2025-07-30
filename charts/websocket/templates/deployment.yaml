@@ -34,11 +34,6 @@ spec:
           envFrom:
             - configMapRef:
                 name: orocommerce-global-config
-          env:
-            {{- range $key, $value := .Values.env }}
-            - name: {{ $key }}
-              value: {{ $value | quote }}
-            {{- end }}
           resources:
             limits:
               cpu: {{ .Values.websocket.resources.limits.cpu }}

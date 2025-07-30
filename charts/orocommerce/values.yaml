@@ -16,13 +16,16 @@ storage:
     size: "10Gi"
     storageClass: ""
 
+rootSecurityContext:
+  runAsUser: 0
+
 # Configuration des Jobs d'initialisation
 jobs:
   volumeInit:
     enabled: true
     # Le Job d'initialisation des volumes s'exécute toujours au premier install
   install:
-    enabled: true
+    enabled: false
     # Le Job d'installation s'exécute seulement au premier install
     # Pour forcer une installation lors d'un upgrade, mettre à false puis true
   restoreInit:

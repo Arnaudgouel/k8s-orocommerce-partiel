@@ -50,6 +50,7 @@ upgrade: update-deps
 uninstall:
 	@echo "$(RED)Désinstallation d'OroCommerce...$(NC)"
 	helm uninstall $(RELEASE_NAME) 
+	make clean-pvc
 
 # Afficher le statut du release
 status:
