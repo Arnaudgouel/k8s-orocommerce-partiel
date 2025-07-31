@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "mail.fullname" . }}
+  name: mail
   labels:
     {{- include "mail.labels" . | nindent 4 }}
 spec:
