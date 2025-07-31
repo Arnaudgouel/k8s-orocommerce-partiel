@@ -1,0 +1,54 @@
+{{- if .Values.job.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "final-service.fullname" . }}-init
+  labels:
+    {{- include "final-service.labels" . | nindent 4 }}
+spec:
+  template:
+    metadata:
+      labels:
+        {{- include "final-service.selectorLabels" . | nindent 8 }}
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: init
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Initialisation du service final..."
+              echo "Vérification de la disponibilité des services..."
+              
+              # Attendre que tous les services soient prêts
+              echo "Attente de la base de données..."
+              until pg_isready -h {{ .Values.dependencies.database.serviceName }} -p {{ .Values.dependencies.database.port }} -U $ORO_DB_USER -d $ORO_DB_NAME; do
+                echo "Base de données non prête, attente..."
+                sleep 10
+              done
+              
+              echo "Attente du webserver..."
+              until curl -f http://{{ .Values.dependencies.webserver.serviceName }}:{{ .Values.dependencies.webserver.port }}/ > /dev/null 2>&1; do
+                echo "Webserver non prêt, attente..."
+                sleep 10
+              done
+              
+              echo "✓ Tous les services sont prêts pour le service final"
+          env:
+            - name: ORO_DB_USER
+              value: "orodbuser"
+            - name: ORO_DB_NAME
+              value: "orodb"
+            - name: ORO_DB_PASSWORD
+              value: "orodbpass"
+          volumeMounts:
+            - name: oro-app
+              mountPath: /var/www/oro
+      volumes:
+        - name: oro-app
+          persistentVolumeClaim:
+            claimName: {{ .Values.volumes.oroApp.claimName }}
+{{- end }} 

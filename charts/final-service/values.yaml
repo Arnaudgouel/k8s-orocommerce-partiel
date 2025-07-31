@@ -1,0 +1,82 @@
+enabled: true
+
+image:
+  repository: oroinc/runtime
+  tag: "6.1-latest"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8080
+
+resources:
+  requests:
+    memory: "128Mi"
+    cpu: "100m"
+  limits:
+    memory: "256Mi"
+    cpu: "200m"
+
+volumes:
+  oroApp:
+    claimName: "oro-app-orocommerce"
+  cache:
+    claimName: "cache-orocommerce"
+  maintenance:
+    claimName: "maintenance-orocommerce"
+  publicStorage:
+    claimName: "public-storage-orocommerce"
+  privateStorage:
+    claimName: "private-storage-orocommerce"
+
+# Configuration des dépendances
+dependencies:
+  webserver:
+    serviceName: "webserver-orocommerce"
+    port: 80
+  database:
+    serviceName: "database-orocommerce"
+    port: 5432
+  phpFpm:
+    serviceName: "php-fpm-orocommerce"
+    port: 9000
+  websocket:
+    serviceName: "websocket-orocommerce"
+    port: 8080
+  consumer:
+    serviceName: "consumer-orocommerce"
+  cron:
+    serviceName: "cron-orocommerce"
+  mail:
+    serviceName: "mail-orocommerce"
+    port: 1025
+
+# Configuration du Job d'initialisation
+job:
+  enabled: false
+
+# Configuration du ServiceAccount
+serviceAccount:
+  create: true
+  name: ""
+
+# Configuration du contexte de sécurité
+podSecurityContext: {}
+securityContext: {}
+
+# Configuration des secrets d'images
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# Configuration Ingress
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: final-service.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: [] 

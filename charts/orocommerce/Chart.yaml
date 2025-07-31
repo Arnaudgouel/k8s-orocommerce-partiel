@@ -32,3 +32,7 @@ dependencies:
     version: 0.1.0
     repository: file://../consumer
     condition: consumer.enabled
+  - name: final-service
+    version: 0.1.0
+    repository: file://../final-service
+    condition: final-service.enabled

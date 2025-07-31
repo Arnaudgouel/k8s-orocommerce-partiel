@@ -28,7 +28,7 @@ spec:
           - sh
           - -c
           - |
-            /usr/local/bin/docker-entrypoint.sh nginx-init
+            /usr/local/bin/docker-entrypoint.sh nginx-init && sed -i '/gridfs/d; /mongo/d' /opt/oro-nginx/etc/sites-available/*.conf
           envFrom:
             - configMapRef:
                 name: orocommerce-global-config

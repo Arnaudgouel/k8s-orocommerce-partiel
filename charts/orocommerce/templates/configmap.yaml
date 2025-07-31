@@ -14,7 +14,7 @@ data:
   
   # Variables utilisées en interne dans les instances
   ORO_USER_RUNTIME: "www-data"
-  ORO_ENV: "dev"
+  ORO_ENV: "prod"
   
   # Données pour l'installation
   ORO_USER_NAME: "admin"
