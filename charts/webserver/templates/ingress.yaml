@@ -2,12 +2,30 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ include "webserver.fullname" . }}-ingress
+  labels:
+    {{- include "webserver.labels" . | nindent 4 }}
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/hsts: "true"
+    nginx.ingress.kubernetes.io/hsts-max-age: "31536000"
+    nginx.ingress.kubernetes.io/hsts-include-subdomains: "true"
+    nginx.ingress.kubernetes.io/hsts-preload: "true"
+    # Configuration pour OroCommerce
+    nginx.ingress.kubernetes.io/proxy-body-size: "512m"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "180"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "180"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "180"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "8k"
+    nginx.ingress.kubernetes.io/proxy-buffers-number: "32"
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - oro.demo
+      secretName: oro-demo-tls
   rules:
-    - host: oro.local
+    - host: oro.demo
       http:
         paths:
           - path: /
@@ -16,4 +34,4 @@ spec:
               service:
                 name: {{ include "webserver.fullname" . }}
                 port:
-                  number: {{ .Values.service.port }}
+                  number: 80

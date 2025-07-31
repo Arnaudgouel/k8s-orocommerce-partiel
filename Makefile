@@ -28,6 +28,7 @@ help:
 	@echo "  $(YELLOW)clean-deps$(NC)   - Nettoyer les dépendances"
 	@echo "  $(YELLOW)update-deps$(NC)  - Mettre à jour les dépendances"
 	@echo "  $(YELLOW)port-forward$(NC) - Faire un port-forward du webserver"
+	@echo "  $(YELLOW)port-forward-ingress$(NC) - Faire un port-forward de l'Ingress (HTTPS)"
 	@echo "  $(YELLOW)context$(NC)      - Définir le contexte avec namespace orocommerce"
 	@echo "  $(YELLOW)diagnose$(NC)     - Diagnostiquer les problèmes"
 	@echo "  $(YELLOW)logs-pod$(NC)     - Logs d'un pod spécifique (POD=nom-du-pod)"
@@ -35,6 +36,8 @@ help:
 	@echo "  $(YELLOW)force-restart$(NC) - Forcer le redémarrage des pods"
 	@echo "  $(YELLOW)clean-pvc$(NC)    - Nettoyer les PersistentVolumeClaims"
 	@echo "  $(YELLOW)create-pvc$(NC)   - Créer les PersistentVolumeClaims manquants"
+	@echo "  $(YELLOW)ssl-cert$(NC)     - Générer le certificat SSL"
+	@echo "  $(YELLOW)ssl-delete$(NC)   - Supprimer le certificat SSL"
 
 # Installer OroCommerce (première fois)
 install: update-deps
@@ -116,6 +119,13 @@ port-forward:
 	@echo "$(GREEN)Port-forward du webserver sur localhost:8080...$(NC)"
 	@echo "$(YELLOW)Appuyez sur Ctrl+C pour arrêter$(NC)"
 	kubectl port-forward svc/webserver-$(RELEASE_NAME) 8080:80
+
+# Faire un port-forward de l'Ingress Controller (pour HTTPS)
+port-forward-ingress:
+	@echo "$(GREEN)Port-forward de l'Ingress Controller sur localhost:80 et 443...$(NC)"
+	@echo "$(YELLOW)Appuyez sur Ctrl+C pour arrêter$(NC)"
+	@echo "$(YELLOW)Note: Nécessite les privilèges sudo pour le port 443$(NC)"
+	sudo kubectl port-forward svc/ingress-nginx-controller -n ingress-nginx 80:80 443:443
 
 port-forward-mail:
 	@echo "$(GREEN)Port-forward du mailhog sur localhost:8025...$(NC)"
@@ -224,6 +234,17 @@ create-pvc:
 	kubectl apply -f /tmp/oro-pvc.yaml
 	@rm /tmp/oro-pvc.yaml
 	@echo "$(GREEN)PersistentVolumeClaims créés$(NC)"
+
+# Générer le certificat SSL
+ssl-cert:
+	@echo "$(GREEN)Génération du certificat SSL...$(NC)"
+	./scripts/generate-ssl-cert.sh
+
+# Supprimer le certificat SSL
+ssl-delete:
+	@echo "$(RED)Suppression du certificat SSL...$(NC)"
+	kubectl delete secret oro-demo-tls -n $(NAMESPACE) --ignore-not-found=true
+	@echo "$(GREEN)Certificat SSL supprimé$(NC)"
 
 # Vérifier la santé des pods
 health:

@@ -121,10 +121,37 @@ make port-forward-mail
 #### **Accès à l'application**
 
 Après avoir configuré le fichier hosts, accédez à :
-- **URL** : http://oro.demo:8080
+
+**Méthode 1 : Port-forward direct (HTTP uniquement)**
+```bash
+make port-forward
+# Puis ouvrir http://oro.demo:8080
+```
+
+**Méthode 2 : Port-forward Ingress (HTTPS recommandé)**
+```bash
+make port-forward-ingress
+# Puis ouvrir https://oro.demo
+```
+
+**Services disponibles :**
+- **Application** : https://oro.demo (HTTPS) ou http://oro.demo:8080 (HTTP)
 - **Interface MailHog** : http://oro.demo:8025
 
-**Note** : L'application ne fonctionne pas avec `localhost:8080`, utilisez obligatoirement `oro.demo:8080`.
+**Note** : L'application ne fonctionne pas avec `localhost`, utilisez obligatoirement `oro.demo`.
+
+#### **Configuration HTTPS (optionnel)**
+
+```bash
+# Générer le certificat SSL
+make ssl-cert
+
+# Démarrer le port-forward Ingress pour HTTPS
+make port-forward-ingress
+
+# Accéder en HTTPS
+# https://oro.demo
+```
 
 ## 🗑️ **Désinstallation**
 
@@ -169,7 +196,8 @@ make restart                    # Redémarrage normal
 make force-restart             # Redémarrage forcé
 
 # Port-forward
-make port-forward              # Webserver sur oro.demo:8080
+make port-forward              # Webserver sur oro.demo:8080 (HTTP)
+make port-forward-ingress      # Ingress sur oro.demo (HTTPS)
 ```
 
 ### **Gestion des volumes**
@@ -178,6 +206,10 @@ make port-forward              # Webserver sur oro.demo:8080
 # Volumes persistants
 make clean-pvc                 # Supprimer tous les PVC
 make create-pvc               # Recréer les PVC manquants
+
+# Certificats SSL
+make ssl-cert                 # Générer le certificat SSL
+make ssl-delete               # Supprimer le certificat SSL
 ```
 
 ### **Dépendances Helm**
