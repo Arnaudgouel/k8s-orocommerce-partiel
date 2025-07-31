@@ -1,1 +1,5 @@
 docker-demo-master/
+
+# Helm chart packages
+charts/*/charts/*.tgz
+charts/*/charts/*.tar.gz
