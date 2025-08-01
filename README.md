@@ -89,7 +89,23 @@ Cette commande :
 - Configure les volumes persistants
 - Démarre l'application
 
-### 2. **Vérification de l'installation**
+### 2. **Installation avec monitoring (recommandé)**
+
+```bash
+# Installer OroCommerce avec monitoring
+make install
+make ssl-cert
+make install-monitoring
+make expose-grafana
+```
+
+Cette installation inclut :
+- OroCommerce complet
+- Prometheus pour la collecte de métriques
+- Grafana pour la visualisation
+- Accès permanent à Grafana via NodePort
+
+### 3. **Vérification de l'installation**
 
 ```bash
 # Vérifier le statut
@@ -102,7 +118,7 @@ make pods
 make services
 ```
 
-### 3. **Accès à l'application**
+### 4. **Accès à l'application**
 
 ```bash
 # Port-forward du webserver
@@ -178,6 +194,19 @@ make logs            # Logs des pods
 make health          # Vérification de santé
 ```
 
+### **Monitoring avec Prometheus et Grafana**
+
+```bash
+# Installation du monitoring
+make install-monitoring      # Installer Prometheus et Grafana
+make monitoring-status       # Statut du monitoring
+make uninstall-monitoring   # Désinstaller le monitoring
+
+# Accès à Grafana
+make monitoring-port-forward # Port-forward Grafana (localhost:3000)
+make expose-grafana         # Exposer Grafana via NodePort
+```
+
 ### **Développement et debugging**
 
 ```bash
@@ -213,6 +242,9 @@ make ssl-delete               # Supprimer le certificat SSL
 # Gestion des dépendances
 make clean-deps               # Nettoyer les dépendances
 make update-deps             # Mettre à jour les dépendances
+
+# Repositories Helm
+make setup-helm-repos        # Installer tous les repositories Helm nécessaires
 ```
 
 ## 📁 **Structure du projet**
@@ -236,6 +268,78 @@ orocommerce/
 ```
 
 ## 🔍 **Monitoring et logs**
+
+### **Monitoring avec Prometheus et Grafana**
+
+Le projet inclut un système de monitoring complet avec Prometheus et Grafana pour surveiller tous les pods, services et métriques du cluster.
+
+#### **Installation du monitoring**
+
+```bash
+# Installer Prometheus et Grafana
+make install-monitoring
+
+# Vérifier le statut
+make monitoring-status
+
+# Exposer Grafana via NodePort
+make expose-grafana
+```
+
+#### **Accès à Grafana**
+
+**Méthode 1 : Port-forward (recommandé pour le développement)**
+```bash
+make monitoring-port-forward
+# Accès : http://localhost:3000 (admin/admin)
+```
+
+**Méthode 2 : NodePort (permanent)**
+```bash
+make expose-grafana
+# Accès : http://192.168.49.2:31952 (admin/admin)
+# L'IP et le port sont affichés par la commande
+```
+
+#### **Configuration Prometheus**
+
+Prometheus est configuré pour collecter automatiquement :
+- **Métriques des pods** : CPU, mémoire, réseau
+- **Métriques des services** : Latence, disponibilité
+- **Métriques Kubernetes** : État des nodes, namespaces
+- **Métriques personnalisées** : Via ServiceMonitors et PodMonitors
+
+**Configuration par défaut :**
+- **Rétention** : 7 jours
+- **Stockage** : 10Gi persistant
+- **ServiceMonitors** : Activés pour tous les services
+- **PodMonitors** : Activés pour tous les pods
+
+#### **Dashboards recommandés**
+
+Après la première connexion à Grafana :
+
+1. **Ajouter Prometheus comme source de données**
+   - URL : `http://prometheus-server.monitoring.svc.cluster.local:80`
+   - Access : Server (default)
+
+2. **Importer des dashboards populaires**
+   - **Kubernetes Cluster Monitoring** : ID `315`
+   - **Kubernetes Pods** : ID `6417`
+   - **Node Exporter** : ID `1860`
+
+#### **Gestion du monitoring**
+
+```bash
+# Statut du monitoring
+make monitoring-status
+
+# Désinstaller le monitoring
+make uninstall-monitoring
+
+# Réinstaller le monitoring
+make install-monitoring
+```
 
 ### **Logs en temps réel**
 

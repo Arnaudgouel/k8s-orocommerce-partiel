@@ -39,9 +39,14 @@ help:
 	@echo "  $(YELLOW)ssl-cert$(NC)     - Générer le certificat SSL"
 	@echo "  $(YELLOW)ssl-delete$(NC)   - Supprimer le certificat SSL"
 	@echo "  $(YELLOW)setup-helm-repos$(NC) - Installer tous les repositories Helm nécessaires"
+	@echo "  $(YELLOW)install-monitoring$(NC) - Installer Prometheus et Grafana"
+	@echo "  $(YELLOW)uninstall-monitoring$(NC) - Désinstaller Prometheus et Grafana"
+	@echo "  $(YELLOW)monitoring-status$(NC) - Statut du monitoring"
+	@echo "  $(YELLOW)monitoring-port-forward$(NC) - Port-forward pour accéder à Grafana"
+	@echo "  $(YELLOW)expose-grafana$(NC) - Exposer Grafana via NodePort"
 
 # Installer OroCommerce (première fois)
-install: setup-helm-repos update-deps
+install: context setup-helm-repos update-deps
 	@echo "$(GREEN)Installation d'OroCommerce...$(NC)"
 	helm install $(RELEASE_NAME) $(CHART_PATH) 
 
@@ -136,6 +141,8 @@ port-forward-mail:
 # Définir le contexte avec namespace orocommerce
 context:
 	@echo "$(GREEN)Définition du contexte avec namespace $(NAMESPACE)...$(NC)"
+	kubectl create namespace $(NAMESPACE)
+	kubectl create namespace monitoring
 	kubectl config set-context --current --namespace=$(NAMESPACE)
 	@echo "$(GREEN)Contexte défini sur le namespace $(NAMESPACE)$(NC)"
 
@@ -262,9 +269,107 @@ setup-helm-repos:
 	helm repo add elastic https://helm.elastic.co 2>/dev/null || echo "$(YELLOW)⚠️  Repository elastic existe déjà$(NC)"
 	@echo "$(YELLOW)Ajout du repository: jaegertracing - Jaeger pour le tracing$(NC)"
 	helm repo add jaegertracing https://jaegertracing.github.io/helm-charts 2>/dev/null || echo "$(YELLOW)⚠️  Repository jaegertracing existe déjà$(NC)"
+	@echo "$(YELLOW)Ajout du repository: grafana - Grafana pour les dashboards$(NC)"
+	helm repo add grafana https://grafana.github.io/helm-charts 2>/dev/null || echo "$(YELLOW)⚠️  Repository grafana existe déjà$(NC)"
 	@echo "$(YELLOW)Mise à jour de tous les repositories...$(NC)"
 	helm repo update
 	
+
+# Installer Prometheus et Grafana pour le monitoring
+install-monitoring: setup-helm-repos
+	@echo "$(GREEN)Installation de Prometheus et Grafana...$(NC)"
+	@echo "$(YELLOW)Création du namespace monitoring...$(NC)"
+	kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
+	@echo "$(YELLOW)Vérification de Prometheus...$(NC)"
+	@if helm list -n monitoring | grep -q prometheus; then \
+		echo "$(YELLOW)⚠️  Prometheus est déjà installé, mise à jour...$(NC)"; \
+		helm upgrade prometheus prometheus-community/prometheus \
+			--namespace monitoring \
+			--set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false \
+			--set prometheus.prometheusSpec.podMonitorSelectorNilUsesHelmValues=false \
+			--set prometheus.prometheusSpec.ruleSelectorNilUsesHelmValues=false \
+			--set prometheus.prometheusSpec.probeSelectorNilUsesHelmValues=false \
+			--set prometheus.prometheusSpec.retention=7d \
+			--set prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.resources.requests.storage=10Gi; \
+	else \
+		echo "$(YELLOW)Installation de Prometheus...$(NC)"; \
+		helm install prometheus prometheus-community/prometheus \
+			--namespace monitoring \
+			--set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false \
+			--set prometheus.prometheusSpec.podMonitorSelectorNilUsesHelmValues=false \
+			--set prometheus.prometheusSpec.ruleSelectorNilUsesHelmValues=false \
+			--set prometheus.prometheusSpec.probeSelectorNilUsesHelmValues=false \
+			--set prometheus.prometheusSpec.retention=7d \
+			--set prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.resources.requests.storage=10Gi; \
+	fi
+	@echo "$(YELLOW)Vérification de Grafana...$(NC)"
+	@if helm list -n monitoring | grep -q grafana; then \
+		echo "$(YELLOW)⚠️  Grafana est déjà installé, mise à jour...$(NC)"; \
+		helm upgrade grafana grafana/grafana \
+			--namespace monitoring \
+			--set persistence.enabled=true \
+			--set persistence.size=5Gi \
+			--set adminPassword=admin \
+			--set service.type=ClusterIP; \
+	else \
+		echo "$(YELLOW)Installation de Grafana...$(NC)"; \
+		helm install grafana grafana/grafana \
+			--namespace monitoring \
+			--set persistence.enabled=true \
+			--set persistence.size=5Gi \
+			--set adminPassword=admin \
+			--set service.type=ClusterIP; \
+	fi
+	@echo "$(GREEN)✅ Monitoring installé avec succès !$(NC)"
+	@echo "$(YELLOW)Pour accéder à Grafana: make monitoring-port-forward$(NC)"
+	@echo "$(YELLOW)Pour voir le statut: make monitoring-status$(NC)"
+
+# Désinstaller Prometheus et Grafana
+uninstall-monitoring:
+	@echo "$(RED)Désinstallation de Prometheus et Grafana...$(NC)"
+	helm uninstall grafana -n monitoring --ignore-not-found=true
+	helm uninstall prometheus -n monitoring --ignore-not-found=true
+	kubectl delete namespace monitoring --ignore-not-found=true
+	@echo "$(GREEN)✅ Monitoring désinstallé$(NC)"
+
+# Statut du monitoring
+monitoring-status:
+	@echo "$(GREEN)Statut du monitoring:$(NC)"
+	@echo "$(YELLOW)Pods du namespace monitoring:$(NC)"
+	kubectl get pods -n monitoring
+	@echo ""
+	@echo "$(YELLOW)Services du namespace monitoring:$(NC)"
+	kubectl get services -n monitoring
+	@echo ""
+	@echo "$(YELLOW)Grafana credentials:$(NC)"
+	@echo "  Username: admin"
+	@echo "  Password: admin"
+	@echo ""
+	@echo "$(YELLOW)Pour accéder à Grafana:$(NC)"
+	@echo "  make monitoring-port-forward"
+
+# Port-forward pour accéder à Grafana
+monitoring-port-forward:
+	@echo "$(GREEN)Port-forward pour Grafana sur localhost:3000...$(NC)"
+	@echo "$(YELLOW)Appuyez sur Ctrl+C pour arrêter$(NC)"
+	@echo "$(YELLOW)Accès: http://localhost:3000 (admin/admin)$(NC)"
+	kubectl port-forward svc/grafana -n monitoring 3000:80
+
+# Exposer Grafana via NodePort
+expose-grafana:
+	@echo "$(GREEN)Exposition de Grafana via NodePort...$(NC)"
+	@echo "$(YELLOW)Création du service NodePort pour Grafana...$(NC)"
+	kubectl patch svc grafana -n monitoring -p '{"spec":{"type":"NodePort"}}' --dry-run=client -o yaml | kubectl apply -f -
+	@echo "$(GREEN)✅ Grafana exposé via NodePort$(NC)"
+	@echo "$(YELLOW)Récupération du port NodePort et de l'IP...$(NC)"
+	@NODEPORT=$$(kubectl get svc grafana -n monitoring -o jsonpath='{.spec.ports[0].nodePort}'); \
+	MINIKUBE_IP=$$(minikube ip); \
+	echo "$(GREEN)Grafana accessible sur:$(NC)"; \
+	echo "$(YELLOW)  Local: http://localhost:$$NODEPORT$(NC)"; \
+	echo "$(YELLOW)  Minikube: http://$$MINIKUBE_IP:$$NODEPORT$(NC)"; \
+	echo "$(YELLOW)  Credentials: admin/admin$(NC)"
+	@echo "$(YELLOW)Services du namespace monitoring:$(NC)"
+	kubectl get svc -n monitoring
 
 # Vérifier la santé des pods
 health:
