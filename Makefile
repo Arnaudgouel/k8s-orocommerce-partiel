@@ -38,9 +38,10 @@ help:
 	@echo "  $(YELLOW)create-pvc$(NC)   - Créer les PersistentVolumeClaims manquants"
 	@echo "  $(YELLOW)ssl-cert$(NC)     - Générer le certificat SSL"
 	@echo "  $(YELLOW)ssl-delete$(NC)   - Supprimer le certificat SSL"
+	@echo "  $(YELLOW)setup-helm-repos$(NC) - Installer tous les repositories Helm nécessaires"
 
 # Installer OroCommerce (première fois)
-install: update-deps
+install: setup-helm-repos update-deps
 	@echo "$(GREEN)Installation d'OroCommerce...$(NC)"
 	helm install $(RELEASE_NAME) $(CHART_PATH) 
 
@@ -245,6 +246,25 @@ ssl-delete:
 	@echo "$(RED)Suppression du certificat SSL...$(NC)"
 	kubectl delete secret oro-demo-tls -n $(NAMESPACE) --ignore-not-found=true
 	@echo "$(GREEN)Certificat SSL supprimé$(NC)"
+
+# Installer tous les repositories Helm nécessaires
+setup-helm-repos:
+	@echo "$(GREEN)Installation des repositories Helm...$(NC)"
+	@echo "$(YELLOW)Ajout du repository: bitnami - Charts Bitnami (MySQL, Redis, etc.)$(NC)"
+	helm repo add bitnami https://charts.bitnami.com/bitnami 2>/dev/null || echo "$(YELLOW)⚠️  Repository bitnami existe déjà$(NC)"
+	@echo "$(YELLOW)Ajout du repository: prometheus-community - Prometheus, Grafana, AlertManager$(NC)"
+	helm repo add prometheus-community https://prometheus-community.github.io/helm-charts 2>/dev/null || echo "$(YELLOW)⚠️  Repository prometheus-community existe déjà$(NC)"
+	@echo "$(YELLOW)Ajout du repository: ingress-nginx - Ingress Controller NGINX$(NC)"
+	helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx 2>/dev/null || echo "$(YELLOW)⚠️  Repository ingress-nginx existe déjà$(NC)"
+	@echo "$(YELLOW)Ajout du repository: jetstack - Cert-Manager pour SSL/TLS$(NC)"
+	helm repo add jetstack https://charts.jetstack.io 2>/dev/null || echo "$(YELLOW)⚠️  Repository jetstack existe déjà$(NC)"
+	@echo "$(YELLOW)Ajout du repository: elastic - Elasticsearch, Kibana, Logstash$(NC)"
+	helm repo add elastic https://helm.elastic.co 2>/dev/null || echo "$(YELLOW)⚠️  Repository elastic existe déjà$(NC)"
+	@echo "$(YELLOW)Ajout du repository: jaegertracing - Jaeger pour le tracing$(NC)"
+	helm repo add jaegertracing https://jaegertracing.github.io/helm-charts 2>/dev/null || echo "$(YELLOW)⚠️  Repository jaegertracing existe déjà$(NC)"
+	@echo "$(YELLOW)Mise à jour de tous les repositories...$(NC)"
+	helm repo update
+	
 
 # Vérifier la santé des pods
 health:
