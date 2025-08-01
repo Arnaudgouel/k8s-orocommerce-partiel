@@ -80,6 +80,7 @@ kubectl config view --minify --output 'jsonpath={..namespace}'
 ```bash
 # Installer OroCommerce
 make install
+make ssl-cert
 ```
 
 Cette commande :
@@ -105,7 +106,7 @@ make services
 
 ```bash
 # Port-forward du webserver
-make port-forward
+make port-forward-ingress
 make port-forward-mail
 ```
 
@@ -122,25 +123,19 @@ make port-forward-mail
 
 Après avoir configuré le fichier hosts, accédez à :
 
-**Méthode 1 : Port-forward direct (HTTP uniquement)**
-```bash
-make port-forward
-# Puis ouvrir http://oro.demo:8080
-```
-
-**Méthode 2 : Port-forward Ingress (HTTPS recommandé)**
+**Méthode 1 : Port-forward Ingress (HTTPS recommandé)**
 ```bash
 make port-forward-ingress
-# Puis ouvrir https://oro.demo
+# Puis ouvrir https://oro.demo:8443
 ```
 
 **Services disponibles :**
-- **Application** : https://oro.demo (HTTPS) ou http://oro.demo:8080 (HTTP)
+- **Application** : https://oro.demo:8443 (HTTPS) ou http://oro.demo:8080 (HTTP)
 - **Interface MailHog** : http://oro.demo:8025
 
 **Note** : L'application ne fonctionne pas avec `localhost`, utilisez obligatoirement `oro.demo`.
 
-#### **Configuration HTTPS (optionnel)**
+#### **Configuration HTTPS**
 
 ```bash
 # Générer le certificat SSL
@@ -150,7 +145,7 @@ make ssl-cert
 make port-forward-ingress
 
 # Accéder en HTTPS
-# https://oro.demo
+# https://oro.demo:8443
 ```
 
 ## 🗑️ **Désinstallation**
@@ -320,22 +315,7 @@ cat /etc/hosts | grep oro.demo
 
 ## 📚 **Documentation**
 
-- [Architecture détaillée](docs/ARCHITECTURE.md)
-- [Guide de déploiement](docs/DEPLOYMENT.md)
-- [Guide de développement](docs/DEVELOPMENT.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
-
-## 🤝 **Contribution**
-
-1. Fork le projet
-2. Créer une branche feature (`git checkout -b feature/AmazingFeature`)
-3. Commit les changements (`git commit -m 'Add some AmazingFeature'`)
-4. Push vers la branche (`git push origin feature/AmazingFeature`)
-5. Ouvrir une Pull Request
-
-## 📄 **Licence**
-
-Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
 
 ## 🆘 **Support**
 

@@ -125,7 +125,7 @@ port-forward-ingress:
 	@echo "$(GREEN)Port-forward de l'Ingress Controller sur localhost:80 et 443...$(NC)"
 	@echo "$(YELLOW)Appuyez sur Ctrl+C pour arrêter$(NC)"
 	@echo "$(YELLOW)Note: Nécessite les privilèges sudo pour le port 443$(NC)"
-	sudo kubectl port-forward svc/ingress-nginx-controller -n ingress-nginx 80:80 443:443
+	kubectl port-forward svc/ingress-nginx-controller -n ingress-nginx 8080:80 8443:443
 
 port-forward-mail:
 	@echo "$(GREEN)Port-forward du mailhog sur localhost:8025...$(NC)"
