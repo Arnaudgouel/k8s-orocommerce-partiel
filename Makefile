@@ -44,6 +44,10 @@ help:
 	@echo "  $(YELLOW)monitoring-status$(NC) - Statut du monitoring"
 	@echo "  $(YELLOW)monitoring-port-forward$(NC) - Port-forward pour accéder à Grafana"
 	@echo "  $(YELLOW)expose-grafana$(NC) - Exposer Grafana via NodePort"
+	@echo "  $(YELLOW)backup-db$(NC) - Créer un backup manuel de la base de données"
+	@echo "  $(YELLOW)backup-status$(NC) - Vérifier le statut des backups"
+	@echo "  $(YELLOW)backup-list$(NC) - Lister les backups disponibles"
+	@echo "  $(YELLOW)backup-restore$(NC) - Restaurer depuis un backup (BACKUP_FILE=nom-du-fichier)"
 
 # Installer OroCommerce (première fois)
 install: context setup-helm-repos update-deps
@@ -370,6 +374,70 @@ expose-grafana:
 	echo "$(YELLOW)  Credentials: admin/admin$(NC)"
 	@echo "$(YELLOW)Services du namespace monitoring:$(NC)"
 	kubectl get svc -n monitoring
+
+# Installer le système de backup
+install-backup:
+	@echo "$(GREEN)Installation du système de backup PostgreSQL...$(NC)"
+	@echo "$(YELLOW)Création du PVC pour les backups...$(NC)"
+	kubectl apply -f k8s/backup/backup-storage-pvc.yaml
+	@echo "$(YELLOW)Création du CronJob pour les backups automatiques...$(NC)"
+	kubectl apply -f k8s/backup/postgres-backup-cronjob.yaml
+	@echo "$(GREEN)✅ Système de backup installé$(NC)"
+	@echo "$(YELLOW)Backups automatiques programmés tous les jours à 2h du matin$(NC)"
+
+# Créer un backup manuel
+backup-db:
+	@echo "$(GREEN)Création d'un backup manuel de la base de données...$(NC)"
+	@echo "$(YELLOW)Suppression de l'ancien job manuel s'il existe...$(NC)"
+	kubectl delete job manual-postgres-backup -n $(NAMESPACE) --ignore-not-found=true
+	@echo "$(YELLOW)Création du job de backup manuel...$(NC)"
+	kubectl apply -f k8s/backup/manual-backup-job.yaml
+	@echo "$(GREEN)✅ Job de backup créé$(NC)"
+	@echo "$(YELLOW)Suivi du job en cours...$(NC)"
+	kubectl wait --for=condition=complete job/manual-postgres-backup -n $(NAMESPACE) --timeout=300s
+	@echo "$(GREEN)✅ Backup terminé$(NC)"
+	@echo "$(YELLOW)Logs du backup:$(NC)"
+	kubectl logs job/manual-postgres-backup -n $(NAMESPACE)
+
+# Vérifier le statut des backups
+backup-status:
+	@echo "$(GREEN)Statut du système de backup:$(NC)"
+	@echo "$(YELLOW)CronJob:$(NC)"
+	kubectl get cronjob postgres-backup -n $(NAMESPACE)
+	@echo ""
+	@echo "$(YELLOW)Jobs récents:$(NC)"
+	kubectl get jobs -n $(NAMESPACE) -l app=postgres-backup
+	@echo ""
+	@echo "$(YELLOW)PVC de backup:$(NC)"
+	kubectl get pvc backup-storage-pvc -n $(NAMESPACE)
+
+# Lister les backups disponibles
+backup-list:
+	@echo "$(GREEN)Backups disponibles:$(NC)"
+	@echo "$(YELLOW)Création d'un pod temporaire pour lister les backups...$(NC)"
+	kubectl run backup-lister --image=busybox --rm -it --restart=Never -n $(NAMESPACE) \
+		--overrides='{"spec":{"volumes":[{"name":"backup-storage","persistentVolumeClaim":{"claimName":"backup-storage-pvc"}}],"containers":[{"name":"backup-lister","image":"busybox","command":["sh","-c","ls -la /backup-storage/"],"volumeMounts":[{"name":"backup-storage","mountPath":"/backup-storage"}]}]}}'
+
+# Restaurer depuis un backup
+backup-restore:
+	@echo "$(GREEN)Restauration depuis un backup...$(NC)"
+	@if [ -z "$(BACKUP_FILE)" ]; then \
+		echo "$(RED)Spécifiez un fichier de backup avec BACKUP_FILE=nom-du-fichier$(NC)"; \
+		echo "$(YELLOW)Exemple: make backup-restore BACKUP_FILE=orocommerce_backup_20250101_000000.sql.gz$(NC)"; \
+		echo "$(YELLOW)Utilisez 'make backup-list' pour voir les backups disponibles$(NC)"; \
+	else \
+		echo "$(YELLOW)Restauration depuis: $(BACKUP_FILE)$(NC)"; \
+		echo "$(YELLOW)Modification du fichier de restauration...$(NC)"; \
+		sed -i "s/orocommerce_backup_20250101_000000.sql.gz/$(BACKUP_FILE)/g" k8s/backup/restore-job.yaml; \
+		echo "$(YELLOW)Création du job de restauration...$(NC)"; \
+		kubectl apply -f k8s/backup/restore-job.yaml; \
+		echo "$(GREEN)✅ Job de restauration créé$(NC)"; \
+		echo "$(YELLOW)Suivi de la restauration...$(NC)"; \
+		kubectl wait --for=condition=complete job/postgres-restore -n $(NAMESPACE) --timeout=300s; \
+		echo "$(GREEN)✅ Restauration terminée$(NC)"; \
+		echo "$(YELLOW)Logs de la restauration:$(NC)"; \
+		kubectl logs job/postgres-restore -n $(NAMESPACE); \
+	fi
 
 # Vérifier la santé des pods
 health:
