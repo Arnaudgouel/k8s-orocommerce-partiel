@@ -1,0 +1,88 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  namespace: orocommerce
+  labels:
+    app: postgres-backup
+    component: backup
+spec:
+  schedule: "0 2 * * *"  # Tous les jours à 2h du matin
+  concurrencyPolicy: Forbid  # Éviter les exécutions simultanées
+  successfulJobsHistoryLimit: 7  # Garder 7 jobs réussis
+  failedJobsHistoryLimit: 3      # Garder 3 jobs échoués
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: backup
+            image: postgres:13-alpine
+            env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: orocommerce-secret
+                  key: postgres-password
+            - name: POSTGRES_HOST
+              value: "postgres-service"
+            - name: POSTGRES_DB
+              value: "orocommerce"
+            - name: POSTGRES_USER
+              value: "postgres"
+            - name: BACKUP_DATE
+              value: "$(date +%Y%m%d_%H%M%S)"
+            command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Début du backup PostgreSQL..."
+              
+              # Créer le répertoire de backup
+              mkdir -p /backup
+              
+              # Nom du fichier de backup
+              BACKUP_FILE="orocommerce_backup_${BACKUP_DATE}.sql.gz"
+              
+              # Exécuter pg_dump avec compression
+              echo "Sauvegarde de la base de données..."
+              pg_dump -h ${POSTGRES_HOST} -U ${POSTGRES_USER} -d ${POSTGRES_DB} \
+                --verbose --clean --create --if-exists \
+                | gzip > /backup/${BACKUP_FILE}
+              
+              # Vérifier la taille du backup
+              BACKUP_SIZE=$(du -h /backup/${BACKUP_FILE} | cut -f1)
+              echo "Backup créé: ${BACKUP_FILE} (${BACKUP_SIZE})"
+              
+              # Copier vers un volume partagé (optionnel)
+              if [ -d "/shared-backup" ]; then
+                cp /backup/${BACKUP_FILE} /shared-backup/
+                echo "Backup copié vers le volume partagé"
+              fi
+              
+              # Afficher les informations du backup
+              echo "=== RÉSUMÉ DU BACKUP ==="
+              echo "Fichier: ${BACKUP_FILE}"
+              echo "Taille: ${BACKUP_SIZE}"
+              echo "Date: $(date)"
+              echo "Base: ${POSTGRES_DB}"
+              echo "Hôte: ${POSTGRES_HOST}"
+              echo "=========================="
+              
+              # Garder seulement les 10 derniers backups
+              ls -t /backup/*.sql.gz | tail -n +11 | xargs -r rm
+              echo "Nettoyage des anciens backups effectué"
+              
+              echo "Backup terminé avec succès!"
+            volumeMounts:
+            - name: backup-storage
+              mountPath: /backup
+            - name: shared-backup
+              mountPath: /shared-backup
+          volumes:
+          - name: backup-storage
+            emptyDir: {}
+          - name: shared-backup
+            persistentVolumeClaim:
+              claimName: backup-storage-pvc 

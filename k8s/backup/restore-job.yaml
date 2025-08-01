@@ -1,0 +1,74 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: postgres-restore
+  namespace: orocommerce
+  labels:
+    app: postgres-restore
+    component: backup
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: restore
+        image: postgres:13-alpine
+        env:
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: orocommerce-secret
+              key: postgres-password
+        - name: POSTGRES_HOST
+          value: "postgres-service"
+        - name: POSTGRES_DB
+          value: "orocommerce"
+        - name: POSTGRES_USER
+          value: "postgres"
+        - name: BACKUP_FILE
+          value: "orocommerce_backup_20250101_000000.sql.gz"  # À modifier selon le backup
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "=== RESTAURATION POSTGRESQL ==="
+          echo "Début de la restauration PostgreSQL..."
+          
+          # Vérifier que le fichier de backup existe
+          if [ ! -f "/shared-backup/${BACKUP_FILE}" ]; then
+            echo "ERREUR: Fichier de backup ${BACKUP_FILE} non trouvé!"
+            echo "Backups disponibles:"
+            ls -la /shared-backup/
+            exit 1
+          fi
+          
+          echo "Fichier de backup trouvé: ${BACKUP_FILE}"
+          
+          # Afficher la taille du backup
+          BACKUP_SIZE=$(du -h /shared-backup/${BACKUP_FILE} | cut -f1)
+          echo "Taille du backup: ${BACKUP_SIZE}"
+          
+          # Restaurer la base de données
+          echo "Restauration de la base de données..."
+          gunzip -c /shared-backup/${BACKUP_FILE} | psql -h ${POSTGRES_HOST} -U ${POSTGRES_USER} -d ${POSTGRES_DB}
+          
+          # Vérifier la restauration
+          echo "Vérification de la restauration..."
+          psql -h ${POSTGRES_HOST} -U ${POSTGRES_USER} -d ${POSTGRES_DB} -c "SELECT COUNT(*) as tables_count FROM information_schema.tables WHERE table_schema = 'public';"
+          
+          echo "=== RÉSUMÉ DE LA RESTAURATION ==="
+          echo "Fichier restauré: ${BACKUP_FILE}"
+          echo "Taille: ${BACKUP_SIZE}"
+          echo "Date: $(date)"
+          echo "Base: ${POSTGRES_DB}"
+          echo "Hôte: ${POSTGRES_HOST}"
+          echo "================================"
+          
+          echo "Restauration terminée avec succès!"
+        volumeMounts:
+        - name: shared-backup
+          mountPath: /shared-backup
+      volumes:
+      - name: shared-backup
+        persistentVolumeClaim:
+          claimName: backup-storage-pvc 
